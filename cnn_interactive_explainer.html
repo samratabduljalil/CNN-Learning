@@ -1,0 +1,633 @@
+
+<h2 class="sr-only">Interactive CNN explainer: slides, convolution demo, architecture walkthrough, and CNN vs NN comparison</h2>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.wrap{font-family:var(--font-sans);color:var(--text-primary);max-width:680px}
+.nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.5rem;border-bottom:0.5px solid var(--border);padding-bottom:1rem}
+.nav button{padding:6px 14px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--surface-1);color:var(--text-secondary);font-size:13px;cursor:pointer;transition:all .2s}
+.nav button.active{background:var(--bg-accent);color:var(--text-accent);border-color:var(--border-accent);font-weight:500}
+.panel{display:none}.panel.active{display:block}
+.section-title{font-size:18px;font-weight:500;margin-bottom:.5rem;color:var(--text-primary)}
+.section-sub{font-size:14px;color:var(--text-secondary);margin-bottom:1.25rem;line-height:1.6}
+.card{background:var(--surface-1);border:0.5px solid var(--border);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem}
+.badge{display:inline-block;padding:3px 10px;border-radius:var(--radius);font-size:12px;font-weight:500;background:var(--bg-accent);color:var(--text-accent)}
+.badge.danger{background:var(--bg-danger);color:var(--text-danger)}
+.badge.success{background:var(--bg-success);color:var(--text-success)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+.pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.75rem}
+.pill{padding:4px 12px;border-radius:20px;font-size:12px;border:0.5px solid var(--border-strong);color:var(--text-secondary);cursor:pointer;transition:all .2s;background:var(--surface-2)}
+.pill.on{background:var(--bg-accent);color:var(--text-accent);border-color:var(--border-accent)}
+.step-btns{display:flex;gap:8px;margin-top:1rem;align-items:center}
+.step-btns button{padding:6px 18px;border-radius:var(--radius);border:0.5px solid var(--border-strong);background:var(--surface-2);color:var(--text-primary);font-size:13px;cursor:pointer;transition:all .15s}
+.step-btns button:hover{background:var(--surface-1)}
+.step-btns button:disabled{opacity:.35;cursor:not-allowed}
+.step-dots{display:flex;gap:6px;align-items:center;margin-left:auto}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border-strong);transition:all .2s}
+.dot.active{background:var(--text-accent);transform:scale(1.3)}
+canvas{border-radius:var(--radius);display:block}
+.conv-grid{display:grid;grid-template-columns:repeat(5,40px);gap:3px}
+.conv-cell{width:40px;height:40px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;border:0.5px solid var(--border);background:var(--surface-2);color:var(--text-primary);transition:all .25s;cursor:default}
+.conv-cell.hl{background:#B5D4F4;color:#042C53;border-color:#378ADD}
+.conv-cell.hl-dark{background:#0C447C;color:#E6F1FB;border-color:#85B7EB}
+.conv-cell.hl2{background:#C0DD97;color:#173404;border-color:#639922}
+.conv-cell.pulse{animation:cpulse .4s ease-out}
+@keyframes cpulse{0%{transform:scale(1.18)}100%{transform:scale(1)}}
+.arch-pipe{display:flex;align-items:center;gap:0;overflow-x:auto;padding-bottom:.5rem}
+.arch-block{min-width:80px;height:90px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;font-weight:500;text-align:center;padding:8px;cursor:pointer;border:0.5px solid var(--border);transition:all .2s;flex-shrink:0}
+.arch-block:hover,.arch-block.sel{transform:translateY(-4px);box-shadow:0 4px 16px rgba(0,0,0,.12)}
+.arch-arrow{font-size:18px;color:var(--text-muted);flex-shrink:0;padding:0 2px}
+.arch-detail{margin-top:1rem;padding:1rem;border-radius:10px;border:0.5px solid var(--border-accent);background:var(--bg-accent)}
+.arch-detail h3{font-size:14px;font-weight:500;color:var(--text-accent);margin-bottom:.4rem}
+.arch-detail p{font-size:13px;color:var(--text-secondary);line-height:1.6}
+.comp-table{width:100%;border-collapse:collapse;font-size:13px}
+.comp-table th{padding:8px 10px;text-align:left;border-bottom:0.5px solid var(--border-strong);font-weight:500;font-size:12px;color:var(--text-secondary)}
+.comp-table td{padding:9px 10px;border-bottom:0.5px solid var(--border)}
+.comp-table tr:last-child td{border-bottom:none}
+.comp-table .label{font-weight:500;color:var(--text-primary)}
+.comp-table .bad{color:var(--text-danger)}
+.comp-table .good{color:var(--text-success)}
+.prog-bar{height:6px;border-radius:3px;background:var(--surface-0);overflow:hidden;margin:.5rem 0}
+.prog-fill{height:100%;border-radius:3px;transition:width .6s ease}
+.slider-row{display:flex;align-items:center;gap:10px;margin:.5rem 0;font-size:13px}
+.slider-row input{flex:1}
+.slider-row .val{min-width:42px;text-align:right;font-weight:500;color:var(--text-accent);font-size:13px}
+.feat-card{border-radius:10px;padding:1rem;border:0.5px solid var(--border);background:var(--surface-1);transition:all .2s;cursor:pointer}
+.feat-card:hover{border-color:var(--border-accent);background:var(--bg-accent)}
+.feat-icon{font-size:22px;margin-bottom:.5rem}
+.feat-title{font-size:13px;font-weight:500;margin-bottom:.3rem}
+.feat-desc{font-size:12px;color:var(--text-secondary);line-height:1.5}
+.sendp{padding:5px 12px;border-radius:var(--radius);border:0.5px solid var(--border-strong);background:var(--surface-2);color:var(--text-primary);font-size:12px;cursor:pointer;margin-top:.75rem}
+.sendp:hover{background:var(--surface-1)}
+.anim-pixel{transition:background .3s,opacity .3s}
+</style>
+
+<div class="wrap">
+<div class="nav" id="nav">
+  <button class="active" onclick="show('intro')">① The Problem</button>
+  <button onclick="show('what')">② What is CNN?</button>
+  <button onclick="show('conv')">③ Convolution Demo</button>
+  <button onclick="show('arch')">④ Architecture</button>
+  <button onclick="show('compare')">⑤ CNN vs NN</button>
+  <button onclick="show('apps')">⑥ Applications</button>
+</div>
+
+<!-- PANEL 1: THE PROBLEM -->
+<div class="panel active" id="p-intro">
+  <div class="section-title">Why plain neural networks fail on images</div>
+  <div class="section-sub">Try adjusting the image size and see how the parameter count explodes.</div>
+
+  <div class="card">
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:.5rem">Image size</div>
+    <div class="slider-row">
+      <span style="font-size:13px;color:var(--text-muted)">32px</span>
+      <input type="range" min="32" max="512" step="32" value="224" id="img-size" oninput="updateParams()">
+      <span style="font-size:13px;color:var(--text-muted)">512px</span>
+      <span class="val" id="sz-label">224px</span>
+    </div>
+    <div class="slider-row">
+      <span style="font-size:13px;color:var(--text-secondary)">Hidden neurons</span>
+      <input type="range" min="128" max="4096" step="128" value="1024" id="neurons" oninput="updateParams()">
+      <span class="val" id="nr-label">1024</span>
+    </div>
+
+    <div style="display:flex;gap:1rem;margin-top:1rem;flex-wrap:wrap">
+      <div style="flex:1;min-width:140px">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Input neurons</div>
+        <div style="font-size:22px;font-weight:500;color:var(--text-primary)" id="inp-count">150,528</div>
+        <div class="prog-bar"><div class="prog-fill" id="inp-bar" style="background:#2a78d6;width:44%"></div></div>
+      </div>
+      <div style="flex:1;min-width:140px">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Parameters (layer 1)</div>
+        <div style="font-size:22px;font-weight:500" id="param-count" style="color:var(--text-danger)">154M</div>
+        <div class="prog-bar"><div class="prog-fill" id="param-bar" style="background:#e24b4a;width:60%"></div></div>
+      </div>
+      <div style="flex:1;min-width:140px">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">CNN equivalent</div>
+        <div style="font-size:22px;font-weight:500;color:var(--text-success)" id="cnn-count">27K</div>
+        <div class="prog-bar"><div class="prog-fill" id="cnn-bar" style="background:#639922;width:3%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid3">
+    <div class="card">
+      <div class="badge danger" style="margin-bottom:.5rem">Problem 1</div>
+      <div style="font-size:13px;font-weight:500;margin-bottom:.3rem">Parameter explosion</div>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:1.5">Every pixel connects to every neuron. Millions of weights per layer — too slow to train.</div>
+    </div>
+    <div class="card">
+      <div class="badge danger" style="margin-bottom:.5rem">Problem 2</div>
+      <div style="font-size:13px;font-weight:500;margin-bottom:.3rem">No spatial awareness</div>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:1.5">Flattening destroys the 2D structure. Nearby pixels lose their relationship.</div>
+    </div>
+    <div class="card">
+      <div class="badge danger" style="margin-bottom:.5rem">Problem 3</div>
+      <div style="font-size:13px;font-weight:500;margin-bottom:.3rem">Not translation invariant</div>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:1.5">A cat in the corner vs center looks completely different. Must relearn for each position.</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:.5rem">
+    <div style="font-size:13px;font-weight:500;margin-bottom:.75rem">Visualize: image flattening destroys spatial info</div>
+    <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+      <div id="img-vis" style="display:grid;grid-template-columns:repeat(8,30px);gap:2px"></div>
+      <div style="font-size:22px;color:var(--text-muted)">→</div>
+      <div id="flat-vis" style="display:flex;flex-wrap:wrap;gap:2px;max-width:200px"></div>
+    </div>
+    <div style="font-size:12px;color:var(--text-secondary);margin-top:.5rem">Spatial grid on left → 1D flat vector on right. Position info gone.</div>
+  </div>
+  <button class="sendp" onclick="sendPrompt('Why does flattening an image lose spatial information? Explain with an example. ↗')">Ask a follow-up ↗</button>
+</div>
+
+<!-- PANEL 2: WHAT IS CNN -->
+<div class="panel" id="p-what">
+  <div class="section-title">Three ideas that make CNNs work</div>
+  <div class="section-sub">Click each concept to explore it.</div>
+
+  <div id="pillar-sel" style="margin-bottom:1rem">
+    <div class="pill-row">
+      <div class="pill on" onclick="showPillar(0,this)">Local receptive fields</div>
+      <div class="pill" onclick="showPillar(1,this)">Weight sharing</div>
+      <div class="pill" onclick="showPillar(2,this)">Pooling</div>
+    </div>
+  </div>
+
+  <div id="pillar-cards">
+    <div id="pc0" class="card">
+      <div style="display:flex;gap:1rem;align-items:flex-start">
+        <div style="font-size:32px">🔍</div>
+        <div>
+          <div style="font-size:14px;font-weight:500;margin-bottom:.4rem">Local receptive fields</div>
+          <div style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:.75rem">Each neuron looks at only a small patch of the image (e.g. 3×3 pixels) — not the whole thing. This mimics how biological vision works: cells in your retina respond to small local regions before combining into larger patterns.</div>
+          <div style="display:grid;grid-template-columns:repeat(6,32px);gap:2px;margin-bottom:.75rem" id="rf-grid"></div>
+          <div style="font-size:12px;color:var(--text-muted)">Highlighted patch = one neuron's receptive field</div>
+        </div>
+      </div>
+    </div>
+    <div id="pc1" class="card" style="display:none">
+      <div style="display:flex;gap:1rem;align-items:flex-start">
+        <div style="font-size:32px">⚖️</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:500;margin-bottom:.4rem">Weight sharing (shared filters)</div>
+          <div style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:.75rem">One filter slides across the entire image. The same 9 weights detect the same feature everywhere — no relearning for each position. This is why CNNs are translation invariant and massively parameter-efficient.</div>
+          <div style="font-size:13px;margin-bottom:.4rem;color:var(--text-primary)">Parameter comparison for 224×224 image:</div>
+          <div style="font-size:13px;color:var(--text-secondary);margin-bottom:3px">Plain NN (1st layer, 1024 neurons)</div>
+          <div class="prog-bar"><div class="prog-fill" style="background:#e24b4a;width:100%"></div></div>
+          <div style="font-size:12px;color:var(--text-danger);margin-bottom:.75rem">~154 million parameters</div>
+          <div style="font-size:13px;color:var(--text-secondary);margin-bottom:3px">CNN (32 filters of 3×3×3)</div>
+          <div class="prog-bar"><div class="prog-fill" style="background:#639922;width:0.8%"></div></div>
+          <div style="font-size:12px;color:var(--text-success)">~864 parameters — 178,000× fewer</div>
+        </div>
+      </div>
+    </div>
+    <div id="pc2" class="card" style="display:none">
+      <div style="display:flex;gap:1rem;align-items:flex-start">
+        <div style="font-size:32px">📦</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:500;margin-bottom:.4rem">Pooling (downsampling)</div>
+          <div style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:.75rem">After convolution, pooling shrinks the feature map by taking the max or average of small regions. This reduces computation, adds robustness to small shifts, and lets deeper layers see larger context.</div>
+          <div id="pool-demo" style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+            <div>
+              <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Before pooling (4×4)</div>
+              <div id="before-pool" style="display:grid;grid-template-columns:repeat(4,36px);gap:2px"></div>
+            </div>
+            <div style="font-size:22px;color:var(--text-muted)">→</div>
+            <div>
+              <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">After max pooling (2×2)</div>
+              <div id="after-pool" style="display:grid;grid-template-columns:repeat(2,36px);gap:2px"></div>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:.5rem">Max pooling keeps the strongest activation in each 2×2 region</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button class="sendp" onclick="sendPrompt('Explain weight sharing in CNNs with a concrete example. ↗')">Ask a follow-up ↗</button>
+</div>
+
+<!-- PANEL 3: CONVOLUTION DEMO -->
+<div class="panel" id="p-conv">
+  <div class="section-title">Interactive convolution demo</div>
+  <div class="section-sub">Watch the filter slide across the input. Click "step" to advance manually or "auto" to animate.</div>
+
+  <div style="display:flex;gap:1.5rem;flex-wrap:wrap;align-items:flex-start">
+    <div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">Input image (5×5)</div>
+      <div class="conv-grid" id="cg-input"></div>
+    </div>
+    <div style="padding-top:40px;font-size:22px;color:var(--text-muted)">✱</div>
+    <div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">Filter (3×3)</div>
+      <div style="display:grid;grid-template-columns:repeat(3,40px);gap:3px" id="cg-filter"></div>
+    </div>
+    <div style="padding-top:40px;font-size:22px;color:var(--text-muted)">=</div>
+    <div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">Feature map (3×3)</div>
+      <div style="display:grid;grid-template-columns:repeat(3,40px);gap:3px" id="cg-output"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:1rem">
+    <div style="font-size:13px;font-weight:500;margin-bottom:.3rem">What's happening at position (<span id="conv-pos">0,0</span>)</div>
+    <div id="conv-calc" style="font-size:13px;color:var(--text-secondary);line-height:1.7;font-family:var(--font-mono)"></div>
+    <div id="conv-result" style="font-size:14px;margin-top:.4rem;font-weight:500"></div>
+  </div>
+
+  <div class="card" style="margin-top:.5rem">
+    <div style="font-size:13px;font-weight:500;margin-bottom:.5rem">Choose filter type</div>
+    <div class="pill-row">
+      <div class="pill on" onclick="setFilter('edge',this)">Vertical edge detector</div>
+      <div class="pill" onclick="setFilter('blur',this)">Blur / smooth</div>
+      <div class="pill" onclick="setFilter('sharp',this)">Sharpening</div>
+      <div class="pill" onclick="setFilter('diag',this)">Diagonal edge</div>
+    </div>
+    <div id="filter-desc" style="font-size:12px;color:var(--text-secondary);margin-top:.25rem">Detects vertical edges — high response where brightness changes left-to-right</div>
+  </div>
+
+  <div class="step-btns">
+    <button onclick="convStep(-1)" id="btn-prev" disabled>← Prev</button>
+    <button onclick="convStep(1)" id="btn-next">Next →</button>
+    <button onclick="toggleAuto()" id="btn-auto" style="background:var(--bg-accent);color:var(--text-accent);border-color:var(--border-accent)">▶ Auto</button>
+    <div class="step-dots" id="conv-dots"></div>
+  </div>
+  <button class="sendp" onclick="sendPrompt('What are some commonly used CNN filter types and what do they detect? ↗')">Ask about filters ↗</button>
+</div>
+
+<!-- PANEL 4: ARCHITECTURE -->
+<div class="panel" id="p-arch">
+  <div class="section-title">CNN architecture — click each layer to learn more</div>
+  <div class="section-sub">A typical CNN stacks convolutional, activation, and pooling layers before a classifier.</div>
+
+  <div class="arch-pipe" id="arch-pipe"></div>
+
+  <div class="arch-detail" id="arch-detail">
+    <h3 id="arch-d-title">Click a layer block above</h3>
+    <p id="arch-d-body">Each layer in a CNN has a specific role. Click any block to see details.</p>
+  </div>
+
+  <div class="card" style="margin-top:1rem">
+    <div style="font-size:13px;font-weight:500;margin-bottom:.75rem">Feature map size through the network</div>
+    <div id="arch-sizes" style="display:flex;gap:4px;align-items:flex-end;height:60px"></div>
+    <div style="display:flex;gap:4px;margin-top:4px" id="arch-size-labels"></div>
+  </div>
+  <button class="sendp" onclick="sendPrompt('What is the role of ReLU activation in a CNN? ↗')">Ask about ReLU ↗</button>
+</div>
+
+<!-- PANEL 5: COMPARE -->
+<div class="panel" id="p-compare">
+  <div class="section-title">CNN vs plain neural network</div>
+  <div class="section-sub">Every dimension tells the same story. Hover each row for details.</div>
+
+  <div class="card" style="padding:.5rem">
+  <table class="comp-table" id="comp-table">
+    <thead>
+      <tr>
+        <th style="width:28%">Dimension</th>
+        <th style="width:36%"><span style="color:var(--text-danger)">● </span>Plain NN</th>
+        <th style="width:36%"><span style="color:var(--text-success)">● </span>CNN</th>
+      </tr>
+    </thead>
+    <tbody id="comp-body"></tbody>
+  </table>
+  </div>
+
+  <div class="card" style="margin-top:.5rem">
+    <div style="font-size:13px;font-weight:500;margin-bottom:.75rem">Parameter efficiency visualized (224×224 image, 64 units)</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:.5rem">
+      <div style="font-size:12px;color:var(--text-secondary);min-width:60px">Plain NN</div>
+      <div style="flex:1;height:20px;background:var(--surface-0);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:100%;background:#e24b4a;border-radius:3px;display:flex;align-items:center;padding-left:8px">
+          <span style="font-size:11px;color:#fff;white-space:nowrap">~9.7 billion params</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="font-size:12px;color:var(--text-secondary);min-width:60px">CNN</div>
+      <div style="flex:1;height:20px;background:var(--surface-0);border-radius:3px;overflow:hidden">
+        <div style="height:100%;width:0.18%;background:#639922;border-radius:3px;min-width:4px;display:flex;align-items:center"></div>
+      </div>
+      <span style="font-size:11px;color:var(--text-success);white-space:nowrap">~1,728 params</span>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:.5rem">CNN uses ~5.6 million times fewer parameters for the same task</div>
+  </div>
+  <button class="sendp" onclick="sendPrompt('Can you explain translation invariance in CNNs and why it matters? ↗')">Ask about translation invariance ↗</button>
+</div>
+
+<!-- PANEL 6: APPS -->
+<div class="panel" id="p-apps">
+  <div class="section-title">Where CNNs excel</div>
+  <div class="section-sub">Real-world applications powering modern AI. Click any card to go deeper.</div>
+  <div class="grid3" id="apps-grid"></div>
+  <button class="sendp" onclick="sendPrompt('Which CNN architecture is best for real-time object detection, and why? ↗')">Ask about architectures ↗</button>
+</div>
+
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function show(id) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  $('p-'+id).classList.add('active');
+  const idx = ['intro','what','conv','arch','compare','apps'].indexOf(id);
+  document.querySelectorAll('.nav button')[idx].classList.add('active');
+}
+
+// ── PANEL 1 ──────────────────────────────────────────────
+function updateParams() {
+  const sz = +$('img-size').value, nr = +$('neurons').value;
+  $('sz-label').textContent = sz+'px';
+  $('nr-label').textContent = nr.toLocaleString();
+  const inp = sz*sz*3;
+  const params = inp*nr;
+  const cnn = 64*3*3*3 + 64;
+  $('inp-count').textContent = inp.toLocaleString();
+  $('param-count').textContent = params>=1e9 ? (params/1e9).toFixed(1)+'B' : params>=1e6 ? (params/1e6).toFixed(0)+'M' : (params/1e3).toFixed(0)+'K';
+  $('param-count').style.color = params>50e6 ? 'var(--text-danger)' : params>10e6 ? 'var(--text-warning)' : 'var(--text-success)';
+  $('cnn-count').textContent = (cnn/1000).toFixed(1)+'K';
+  const maxInp = 512*512*3;
+  $('inp-bar').style.width = Math.min(100, inp/maxInp*100)+'%';
+  $('param-bar').style.width = Math.min(100, params/(512*512*3*4096)*100)+'%';
+  $('cnn-bar').style.width = Math.max(1, cnn/params*100)+'%';
+}
+updateParams();
+
+// image flattening vis
+const imgColors = [];
+for(let r=0;r<8;r++) for(let c=0;c<8;c++){
+  const hot = r<3&&c<3||r>5&&c>5;
+  imgColors.push(hot?`hsl(${220+c*8},${60+r*5}%,${50-r*3}%)`:`hsl(${200+r*10},20%,${65-c*3}%)`);
+}
+const igrid = $('img-vis');
+const fvis = $('flat-vis');
+imgColors.forEach((c,i)=>{
+  const d = document.createElement('div');
+  d.style.cssText=`width:30px;height:30px;background:${c};border-radius:3px`;
+  igrid.appendChild(d);
+  const f = document.createElement('div');
+  f.style.cssText=`width:10px;height:10px;background:${c};border-radius:1px`;
+  fvis.appendChild(f);
+});
+
+// RF grid
+const rfg = $('rf-grid');
+for(let i=0;i<36;i++){
+  const d=document.createElement('div');
+  const r=Math.floor(i/6),c=i%6,hl=(r>=1&&r<=3&&c>=1&&c<=3);
+  d.style.cssText=`width:32px;height:32px;border-radius:3px;background:${hl?'var(--bg-accent)':'var(--surface-0)'};border:0.5px solid ${hl?'var(--border-accent)':'var(--border)'}`;
+  rfg.appendChild(d);
+}
+
+// Pool demo
+const beforeData=[[1,2,3,4],[5,6,7,8],[1,0,3,2],[4,3,1,0]];
+const bp=$('before-pool'),ap=$('after-pool');
+const maxVals=[];
+for(let qr=0;qr<2;qr++) for(let qc=0;qc<2;qc++){
+  const block=[beforeData[qr*2][qc*2],beforeData[qr*2][qc*2+1],beforeData[qr*2+1][qc*2],beforeData[qr*2+1][qc*2+1]];
+  maxVals.push(Math.max(...block));
+}
+let maxValIdx=0;
+beforeData.flat().forEach((v,i)=>{
+  const d=document.createElement('div');
+  const qr=Math.floor(Math.floor(i/4)/2),qc=Math.floor((i%4)/2);
+  const qi=qr*2+qc;
+  const isMax=maxVals[qi]===v;
+  d.style.cssText=`width:36px;height:36px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;background:${isMax?'var(--bg-success)':'var(--surface-0)'};color:${isMax?'var(--text-success)':'var(--text-primary)'};border:0.5px solid ${isMax?'var(--border-success)':'var(--border)'}`;
+  d.textContent=v;
+  bp.appendChild(d);
+});
+maxVals.forEach(v=>{
+  const d=document.createElement('div');
+  d.style.cssText=`width:36px;height:36px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;background:var(--bg-success);color:var(--text-success);border:0.5px solid var(--border-success)`;
+  d.textContent=v;
+  ap.appendChild(d);
+});
+
+function showPillar(i, el) {
+  document.querySelectorAll('#pillar-sel .pill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  ['pc0','pc1','pc2'].forEach((id,j)=>$(id).style.display=j===i?'block':'none');
+}
+
+// ── PANEL 3: CONVOLUTION DEMO ─────────────────────────────
+const INPUT = [[1,0,1,0,1],[0,1,0,1,0],[1,0,1,0,1],[0,1,0,1,0],[1,0,1,0,1]];
+
+const FILTERS = {
+  edge:{k:[[-1,0,1],[-1,0,1],[-1,0,1]],desc:'Detects vertical edges — high response where brightness changes left-to-right'},
+  blur:{k:[[1,1,1],[1,1,1],[1,1,1]],desc:'Smooths/blurs the image by averaging nearby pixels'},
+  sharp:{k:[[0,-1,0],[-1,5,-1],[0,-1,0]],desc:'Enhances edges by subtracting blurred version from original'},
+  diag:{k:[[1,0,-1],[0,0,0],[-1,0,1]],desc:'Detects diagonal edges (top-left to bottom-right)'},
+};
+
+let curFilter = FILTERS.edge;
+let convPos = 0;
+let autoTimer = null;
+
+function buildConvUI() {
+  // input grid
+  const ig = $('cg-input'); ig.innerHTML='';
+  INPUT.flat().forEach((v,i)=>{
+    const d=document.createElement('div');
+    d.className='conv-cell';
+    d.id='ci'+i;
+    d.textContent=v;
+    ig.appendChild(d);
+  });
+  // filter grid
+  const fg=$('cg-filter'); fg.innerHTML='';
+  curFilter.k.flat().forEach((v,i)=>{
+    const d=document.createElement('div');
+    d.className='conv-cell';
+    d.id='cf'+i;
+    d.textContent=v;
+    d.style.background=v>0?'var(--bg-success)':v<0?'var(--bg-danger)':'var(--surface-2)';
+    d.style.color=v>0?'var(--text-success)':v<0?'var(--text-danger)':'var(--text-primary)';
+    fg.appendChild(d);
+  });
+  // output grid
+  const og=$('cg-output'); og.innerHTML='';
+  for(let i=0;i<9;i++){
+    const d=document.createElement('div');
+    d.className='conv-cell';
+    d.id='co'+i;
+    d.textContent='?';
+    d.style.color='var(--text-muted)';
+    og.appendChild(d);
+  }
+  // dots
+  const dots=$('conv-dots'); dots.innerHTML='';
+  for(let i=0;i<9;i++){
+    const d=document.createElement('div');
+    d.className='dot'+(i===0?' active':'');
+    d.id='dot'+i;
+    dots.appendChild(d);
+  }
+  convPos=0;
+  showConvStep();
+}
+
+function computeConv(r,c){
+  let s=0, terms=[];
+  for(let kr=0;kr<3;kr++) for(let kc=0;kc<3;kc++){
+    const iv=INPUT[r+kr][c+kc], kv=curFilter.k[kr][kc];
+    s+=iv*kv;
+    terms.push(`${iv}×${kv}`);
+  }
+  return {sum:s,terms};
+}
+
+function showConvStep(){
+  const r=Math.floor(convPos/3), c=convPos%3;
+  // clear all highlights
+  for(let i=0;i<25;i++){const el=$('ci'+i);if(el)el.className='conv-cell';}
+  // highlight the 3x3 patch
+  for(let kr=0;kr<3;kr++) for(let kc=0;kc<3;kc++){
+    const idx=(r+kr)*5+(c+kc);
+    const el=$('ci'+idx);
+    if(el) el.className='conv-cell hl';
+  }
+  // update position label
+  $('conv-pos').textContent=r+','+c;
+  // compute
+  const {sum,terms}=computeConv(r,c);
+  const rows=[];
+  terms.forEach((t,i)=>{rows.push(t+(i<8?' + ':''))});
+  const display = terms.slice(0,5).join(' + ') + '\n+ ' + terms.slice(5).join(' + ');
+  $('conv-calc').textContent = display + '\n= ' + sum;
+  $('conv-result').textContent='Output value: '+sum;
+  $('conv-result').style.color = sum>0?'var(--text-success)':sum<0?'var(--text-danger)':'var(--text-muted)';
+  // fill output cells
+  for(let p=0;p<=convPos;p++){
+    const pr=Math.floor(p/3),pc=p%3;
+    const {sum:ps}=computeConv(pr,pc);
+    const el=$('co'+p);
+    if(el){
+      el.textContent=ps;
+      el.style.color=ps>0?'var(--text-success)':ps<0?'var(--text-danger)':'var(--text-muted)';
+      el.style.background=p===convPos?'var(--bg-accent)':'var(--surface-2)';
+      if(p===convPos) el.classList.add('pulse');
+    }
+  }
+  // dots
+  for(let i=0;i<9;i++){
+    const d=$('dot'+i);
+    if(d) d.className='dot'+(i===convPos?' active':'');
+  }
+  $('btn-prev').disabled=convPos===0;
+  $('btn-next').disabled=convPos===8;
+}
+
+function convStep(dir){
+  convPos=Math.max(0,Math.min(8,convPos+dir));
+  showConvStep();
+}
+
+function setFilter(type, el){
+  curFilter=FILTERS[type];
+  document.querySelectorAll('#p-conv .pill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  $('filter-desc').textContent=curFilter.desc;
+  buildConvUI();
+}
+
+function toggleAuto(){
+  if(autoTimer){clearInterval(autoTimer);autoTimer=null;$('btn-auto').textContent='▶ Auto';}
+  else{
+    $('btn-auto').textContent='⏸ Stop';
+    autoTimer=setInterval(()=>{
+      if(convPos>=8){convPos=0;showConvStep();}
+      else{convStep(1);}
+    },900);
+  }
+}
+
+// ── PANEL 4: ARCHITECTURE ─────────────────────────────────
+const LAYERS=[
+  {name:'Input',sub:'224×224×3',color:'#E6F1FB',tc:'#0C447C',bw:'#85B7EB',detail:'The raw input image. Each pixel has 3 values (R,G,B). Total: 150,528 values entering the network.'},
+  {name:'CONV\n+ReLU',sub:'32 filters',color:'#EAF3DE',tc:'#27500A',bw:'#639922',detail:'32 filters of size 3×3×3 slide across the image. Each produces a feature map detecting one type of pattern. ReLU zeroes out negative values.'},
+  {name:'POOL',sub:'Max 2×2',color:'#FAEEDA',tc:'#633806',bw:'#BA7517',detail:'Max pooling with a 2×2 window halves the spatial dimensions, keeping only the strongest activations. Reduces computation and adds shift robustness.'},
+  {name:'CONV\n+ReLU',sub:'64 filters',color:'#EEEDFE',tc:'#3C3489',bw:'#7F77DD',detail:'Deeper convolution layer with 64 filters. Now detecting combinations of low-level features — textures, curves, and object parts.'},
+  {name:'POOL',sub:'Max 2×2',color:'#FAEEDA',tc:'#633806',bw:'#BA7517',detail:'Second pooling layer. Spatial dimensions shrink again — the network now has a compact, rich representation.'},
+  {name:'Flatten\n+FC',sub:'Dense',color:'#FAECE7',tc:'#712B13',bw:'#D85A30',detail:'The 3D feature volume is flattened to a 1D vector and fed into fully-connected layers. These combine all learned features to make decisions.'},
+  {name:'Softmax',sub:'Output',color:'#E1F5EE',tc:'#085041',bw:'#1D9E75',detail:'Converts raw scores into probabilities. Cat: 94%, Dog: 5%, Car: 1%. The class with the highest probability is the prediction.'},
+];
+
+const SIZES=[150528,802816,200704,401408,100352,4096,10];
+const SIZENAMES=['Input','After Conv1','After Pool1','After Conv2','After Pool2','FC','Output'];
+
+function buildArch(){
+  const pipe=$('arch-pipe'); pipe.innerHTML='';
+  LAYERS.forEach((l,i)=>{
+    if(i>0){const a=document.createElement('div');a.className='arch-arrow';a.textContent='›';pipe.appendChild(a);}
+    const b=document.createElement('div');
+    b.className='arch-block';
+    b.style.cssText=`background:${l.color};color:${l.tc};border-color:${l.bw};font-size:11px;white-space:pre-line`;
+    b.innerHTML=`<div style="font-weight:500;font-size:12px;white-space:pre-line">${l.name}</div><div style="font-size:10px;opacity:.7;margin-top:3px">${l.sub}</div>`;
+    b.onclick=()=>selectLayer(i,b);
+    pipe.appendChild(b);
+  });
+
+  const szBar=$('arch-sizes'); szBar.innerHTML='';
+  const szLab=$('arch-size-labels'); szLab.innerHTML='';
+  const maxS=Math.log(SIZES[0]+1);
+  SIZES.forEach((s,i)=>{
+    const h=Math.max(4,Math.log(s+1)/maxS*56);
+    const d=document.createElement('div');
+    d.style.cssText=`width:${100/SIZES.length}%;height:${h}px;background:var(--bg-accent);border-radius:3px 3px 0 0;flex:1`;
+    szBar.appendChild(d);
+    const l=document.createElement('div');
+    l.style.cssText=`flex:1;font-size:9px;color:var(--text-muted);text-align:center;overflow:hidden;white-space:nowrap`;
+    l.textContent=SIZENAMES[i];
+    szLab.appendChild(l);
+  });
+}
+
+function selectLayer(i, el){
+  document.querySelectorAll('.arch-block').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  $('arch-d-title').textContent=LAYERS[i].name.replace('\n',' ');
+  $('arch-d-body').textContent=LAYERS[i].detail;
+}
+buildArch();
+
+// ── PANEL 5: COMPARE ──────────────────────────────────────
+const ROWS=[
+  ['Connectivity','Every neuron → every pixel (fully connected)','Small local patches only (3×3 or 5×5)'],
+  ['Parameters','Millions–billions per layer','Thousands — shared filter weights'],
+  ['Spatial info','Destroyed by flattening','Preserved throughout'],
+  ['Translation','Must relearn for each position','Invariant — same filter everywhere'],
+  ['Image tasks','Struggles beyond tiny images','State-of-the-art on all vision tasks'],
+  ['Speed','Very slow — impractical','Highly optimized for spatial data'],
+  ['Depth','Hard to scale deep','Scales to 100s of layers (ResNet-152)'],
+];
+
+const tbody=$('comp-body');
+ROWS.forEach(([dim,bad,good])=>{
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td class="label">${dim}</td><td class="bad">✗ ${bad}</td><td class="good">✓ ${good}</td>`;
+  tbody.appendChild(tr);
+});
+
+// ── PANEL 6: APPS ─────────────────────────────────────────
+const APPS=[
+  {icon:'🖼️',title:'Image classification',desc:'ResNet, EfficientNet — labeling photos into thousands of categories with superhuman accuracy.',q:'How does ResNet achieve such high accuracy?'},
+  {icon:'📦',title:'Object detection',desc:'YOLO, Faster R-CNN — finding and locating every object in an image in real time.',q:'How does YOLO detect objects in real time?'},
+  {icon:'🩺',title:'Medical imaging',desc:'Detecting tumors, retinal disease, and cancer in X-rays and MRIs at radiologist-level accuracy.',q:'How are CNNs used in medical image diagnosis?'},
+  {icon:'🚗',title:'Autonomous driving',desc:'Lane detection, pedestrian recognition, and sign reading — dozens of frames per second.',q:'What CNN models are used in self-driving cars?'},
+  {icon:'🎭',title:'Face recognition',desc:'FaceNet, DeepFace — mapping faces into compact embeddings for matching and tagging.',q:'How does face recognition work with CNNs?'},
+  {icon:'🎵',title:'Audio & speech',desc:'1D CNNs on spectrograms enable voice recognition and music classification.',q:'How do CNNs process audio signals?'},
+];
+
+const ag=$('apps-grid');
+APPS.forEach(a=>{
+  const d=document.createElement('div');
+  d.className='feat-card';
+  d.innerHTML=`<div class="feat-icon">${a.icon}</div><div class="feat-title">${a.title}</div><div class="feat-desc">${a.desc}</div><button class="sendp" onclick="event.stopPropagation();sendPrompt('${a.q} ↗')">Go deeper ↗</button>`;
+  ag.appendChild(d);
+});
+
+// init conv panel
+buildConvUI();
+</script>
