@@ -250,14 +250,16 @@ body{
         <div class="prog"><div class="prog-fill" id="param-bar" style="background:#f85149;width:100%"></div></div>
         <div style="font-size:11px;color:var(--text3)">layer 1 weights alone</div>
       </div>
-      <!-- <div class="stat">
-        <span class="label">CNN parameters</span>
-        <div class="num" id="cnn-num" style="color:#3fb950">1.7K</div>
-        <div class="prog"><div class="prog-fill" id="cnn-bar" style="background:#3fb950;width:1%"></div></div>
-        <div style="font-size:11px;color:var(--text3)">same task, 64 filters</div>
-      </div> -->
+      
+       
+       
+       
+          
+        
+      
     </div>
   </div>
+   
 
   <div class="card" style="margin-top:.5rem">
     <span class="label">Flattening destroys spatial structure</span>
@@ -536,11 +538,11 @@ function updateParams() {
   $('param-num').textContent = fmt(params);
   const col = params > 100e6 ? '#f85149' : params > 10e6 ? '#d29922' : '#3fb950';
   $('param-num').style.color = col;
-  $('cnn-num').textContent = fmt(cnn);
+  //$('cnn-num').textContent = fmt(cnn);
   const maxInp = 512*512*3;
   $('inp-bar').style.width = Math.min(100, inp/maxInp*100)+'%';
   $('param-bar').style.width = Math.min(100, params/(512*512*3*4096)*100)+'%';
-  $('cnn-bar').style.width = Math.max(0.5, cnn/params*100)+'%';
+  //$('cnn-bar').style.width = Math.max(0.5, cnn/params*100)+'%';
   $('param-bar').style.background = col;
 }
 updateParams();
